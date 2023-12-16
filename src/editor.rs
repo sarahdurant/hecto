@@ -1,10 +1,10 @@
 use std::{
-    io::stdout,
+    io::{stdout, Write},
     time::{Duration},
     error::Error,
 };
 use crossterm::{
-    ExecutableCommand,
+    QueueableCommand, cursor,
     event::{poll, read, Event, KeyModifiers, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, ClearType},
 };
@@ -40,7 +40,9 @@ impl Editor {
     }
     
     fn refresh_screen(mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
-        stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
+        stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
+        stdout.queue(cursor::MoveTo(0,0))?;
+        stdout.flush()?;
         Ok(())
     }
     

@@ -16,7 +16,7 @@ pub struct Editor {
 impl Editor {
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         enable_raw_mode()?;
-        let stdout = stdout();
+        let mut stdout = stdout();
         
         loop {
             if poll(Duration::from_millis(500))?{
@@ -31,8 +31,14 @@ impl Editor {
                 }
                 
                 if self.should_quit {
+                    println!("Exiting... Goodbye!");
                     break;
                 }
+
+                self.draw_rows();
+                stdout.queue(cursor::MoveTo(0,0))?;
+                
+                stdout.flush()?;
             }
         }
         disable_raw_mode()?;
@@ -44,6 +50,12 @@ impl Editor {
         stdout.queue(cursor::MoveTo(0,0))?;
         stdout.flush()?;
         Ok(())
+    }
+
+    fn draw_rows(&self) {
+        for _ in 0..24 {
+            println!("~\r");
+        }
     }
     
     pub fn process_keypress(&mut self) -> Result<(), Box<dyn Error>> {

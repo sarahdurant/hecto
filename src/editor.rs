@@ -1,10 +1,10 @@
 use std::{
-    io::stdout,
+    io::{stdout, Write},
     time::{Duration},
     error::Error,
 };
 use crossterm::{
-    ExecutableCommand,
+    QueueableCommand, cursor,
     event::{poll, read, Event, KeyModifiers, KeyCode},
     terminal::{disable_raw_mode, enable_raw_mode, ClearType},
 };
@@ -16,7 +16,7 @@ pub struct Editor {
 impl Editor {
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         enable_raw_mode()?;
-        let stdout = stdout();
+        let mut stdout = stdout();
         
         loop {
             if poll(Duration::from_millis(500))?{
@@ -31,8 +31,14 @@ impl Editor {
                 }
                 
                 if self.should_quit {
+                    println!("Exiting... Goodbye!");
                     break;
                 }
+
+                self.draw_rows();
+                stdout.queue(cursor::MoveTo(0,0))?;
+                
+                stdout.flush()?;
             }
         }
         disable_raw_mode()?;
@@ -40,8 +46,16 @@ impl Editor {
     }
     
     fn refresh_screen(mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
-        stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
+        stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
+        stdout.queue(cursor::MoveTo(0,0))?;
+        stdout.flush()?;
         Ok(())
+    }
+
+    fn draw_rows(&self) {
+        for _ in 0..24 {
+            println!("~\r");
+        }
     }
     
     pub fn process_keypress(&mut self) -> Result<(), Box<dyn Error>> {

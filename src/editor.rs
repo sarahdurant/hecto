@@ -9,8 +9,11 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, ClearType},
 };
 
+use crate::Terminal;
+
 pub struct Editor {
     should_quit: bool,
+    terminal: Terminal,
 }
 
 impl Editor {
@@ -53,7 +56,7 @@ impl Editor {
     }
 
     fn draw_rows(&self) {
-        for _ in 0..24 {
+        for _ in 0..self.terminal.size().height {
             println!("~\r");
         }
     }
@@ -77,7 +80,10 @@ impl Editor {
     }
     
     pub fn default() -> Self {
-        Editor{ should_quit: false}
+        Editor {
+            should_quit: false,
+            terminal: Terminal::default().expect("Failed to initialize Terminal."),
+        }
     }
     
 }

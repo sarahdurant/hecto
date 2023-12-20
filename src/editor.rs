@@ -47,14 +47,6 @@ impl Editor {
         disable_raw_mode()?;
         Ok(())
     }
-    
-    // fn refresh_screen(mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
-    //     stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
-    //     stdout.queue(cursor::MoveTo(0,0))?;
-    //     stdout.flush()?;
-
-    //     Ok(())
-    // }
 
     fn initialize_screen(&mut self, mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
         stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
@@ -64,12 +56,6 @@ impl Editor {
 
         Ok(())
     }
-
-    // fn draw_rows(&self) {
-    //     for _ in 0..self.terminal.size().height {
-    //         println!("~\r");
-    //     }
-    // }
     
     pub fn process_keypress(&mut self) -> Result<(), Box<dyn Error>> {
         match read() {

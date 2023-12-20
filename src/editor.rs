@@ -28,6 +28,11 @@ impl Editor {
 
         loop {
             if poll(Duration::from_millis(500))? {
+                if let Err(error) = self.initialize_screen(&stdout){
+                    disable_raw_mode()?;
+                    panic!("{error}");
+                }
+
                 if let Err(error) = self.process_keypress() {
                     disable_raw_mode()?;
                     panic!("{error}");
@@ -53,18 +58,18 @@ impl Editor {
 
     fn initialize_screen(&mut self, mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
         stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
-        self.draw_rows();
+        Terminal::draw_left_margin(&self.terminal, &String::from("~"));
         stdout.queue(cursor::MoveTo(0,0))?;
         stdout.flush()?;
 
         Ok(())
     }
 
-    fn draw_rows(&self) {
-        for _ in 0..self.terminal.size().height {
-            println!("~\r");
-        }
-    }
+    // fn draw_rows(&self) {
+    //     for _ in 0..self.terminal.size().height {
+    //         println!("~\r");
+    //     }
+    // }
     
     pub fn process_keypress(&mut self) -> Result<(), Box<dyn Error>> {
         match read() {

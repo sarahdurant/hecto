@@ -26,4 +26,10 @@ impl Terminal {
     pub fn size(&self) -> &Size {
         &self.size
     }
+
+    pub fn draw_left_margin(&self, margin: &str) {
+        for _ in 0..self.size.height {
+            println!("{margin}\r");
+        }
+    }
 }

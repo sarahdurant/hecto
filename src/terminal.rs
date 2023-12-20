@@ -11,6 +11,7 @@ impl Terminal {
     /// # Errors
     /// Returns Err if an underlying crossterm method such as size
     /// errors
+    #[allow(clippy::should_implement_trait)]
     pub fn default() -> Result<Self, std::io::Error> {
         let (cols, rows) = crossterm::terminal::size()?;
         Ok(Self {
@@ -21,6 +22,7 @@ impl Terminal {
         })
     }
 
+    #[must_use]
     pub fn size(&self) -> &Size {
         &self.size
     }

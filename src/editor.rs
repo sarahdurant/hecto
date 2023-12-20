@@ -9,22 +9,25 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, ClearType},
 };
 
+use crate::Terminal;
+
 pub struct Editor {
     should_quit: bool,
+    terminal: Terminal,
 }
 
 impl Editor {
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         enable_raw_mode()?;
-        let mut stdout = stdout();
+        let stdout = stdout();
         
+        if let Err(error) = self.initialize_screen(&stdout){
+            disable_raw_mode()?;
+            panic!("{error}");
+        }
+
         loop {
-            if poll(Duration::from_millis(500))?{
-                if let Err(error) = Editor::refresh_screen(&stdout) {
-                    disable_raw_mode()?;
-                    panic!("{error}");
-                }
-                
+            if poll(Duration::from_millis(500))? {
                 if let Err(error) = self.process_keypress() {
                     disable_raw_mode()?;
                     panic!("{error}");
@@ -34,26 +37,31 @@ impl Editor {
                     println!("Exiting... Goodbye!");
                     break;
                 }
-
-                self.draw_rows();
-                stdout.queue(cursor::MoveTo(0,0))?;
-                
-                stdout.flush()?;
             }
         }
         disable_raw_mode()?;
         Ok(())
     }
     
-    fn refresh_screen(mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
+    // fn refresh_screen(mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
+    //     stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
+    //     stdout.queue(cursor::MoveTo(0,0))?;
+    //     stdout.flush()?;
+
+    //     Ok(())
+    // }
+
+    fn initialize_screen(&mut self, mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
         stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
+        self.draw_rows();
         stdout.queue(cursor::MoveTo(0,0))?;
         stdout.flush()?;
+
         Ok(())
     }
 
     fn draw_rows(&self) {
-        for _ in 0..24 {
+        for _ in 0..self.terminal.size().height {
             println!("~\r");
         }
     }
@@ -77,7 +85,10 @@ impl Editor {
     }
     
     pub fn default() -> Self {
-        Editor{ should_quit: false}
+        Editor {
+            should_quit: false,
+            terminal: Terminal::default().expect("Failed to initialize Terminal."),
+        }
     }
     
 }

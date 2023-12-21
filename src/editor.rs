@@ -1,12 +1,9 @@
-use std::{
-    io::{stdout, Write},
-    time::{Duration},
-    error::Error,
-};
+use std::time::Duration;
+use std::error::Error;
+
 use crossterm::{
-    QueueableCommand, cursor,
     event::{poll, read, Event, KeyModifiers, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode, ClearType},
+    terminal::{disable_raw_mode, enable_raw_mode},
 };
 
 use crate::Terminal;
@@ -19,19 +16,22 @@ pub struct Editor {
 impl Editor {
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         enable_raw_mode()?;
-        let stdout = stdout();
         
-        if let Err(error) = self.initialize_screen(&stdout){
+        if let Err(error) = Terminal::initialize_screen(&mut self.terminal){
             disable_raw_mode()?;
             panic!("{error}");
         }
 
+        Terminal::draw_left_margin(&mut self.terminal, &String::from("~"))?;
+
         loop {
             if poll(Duration::from_millis(500))? {
-                if let Err(error) = self.initialize_screen(&stdout){
+                if let Err(error) = Terminal::initialize_screen(&mut self.terminal) {
                     disable_raw_mode()?;
                     panic!("{error}");
                 }
+
+                Terminal::draw_left_margin(&mut self.terminal, &String::from("~"))?;
 
                 if let Err(error) = self.process_keypress() {
                     disable_raw_mode()?;
@@ -48,14 +48,7 @@ impl Editor {
         Ok(())
     }
 
-    fn initialize_screen(&mut self, mut stdout: &std::io::Stdout) -> Result<(), std::io::Error> {
-        stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
-        Terminal::draw_left_margin(&self.terminal, &String::from("~"));
-        stdout.queue(cursor::MoveTo(0,0))?;
-        stdout.flush()?;
 
-        Ok(())
-    }
     
     pub fn process_keypress(&mut self) -> Result<(), Box<dyn Error>> {
         match read() {

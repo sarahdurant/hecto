@@ -26,11 +26,6 @@ impl Editor {
 
         loop {
             if poll(Duration::from_millis(500))? {
-                // if let Err(error) = Terminal::initialize_screen(&mut self.terminal) {
-                //     disable_raw_mode()?;
-                //     panic!("{error}");
-                // }
-
                 self.display_version();
 
                 if let Err(error) = self.process_keypress() {

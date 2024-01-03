@@ -1,12 +1,9 @@
 use std::{
     io::{stdout, Write},
-    time::{Duration},
-    error::Error,
 };
 use crossterm::{
     QueueableCommand, cursor,
-    event::{poll, read, Event, KeyModifiers, KeyCode},
-    terminal::{disable_raw_mode, enable_raw_mode, ClearType},
+    terminal::{ClearType},
 };
 
 
@@ -19,6 +16,7 @@ pub struct Terminal {
     size: Size,
     stdout: std::io::Stdout,
 }
+
 
 impl Terminal {
     /// # Errors
@@ -42,20 +40,38 @@ impl Terminal {
     }
 
     pub fn draw_left_margin(&mut self, margin: &str) -> Result<(), std::io::Error> {
-        //stdout.queue(cursor::SavePosition());
         for _ in 0..self.size.height {
             println!("{margin}\r");
         }
-        //stdout.queue(cursor::RestorePosition());
-        self.stdout.flush()?;
-        //println!("{:?}", orig_cursor);
-
+        
         Ok(())
     }
 
     pub fn initialize_screen(&mut self) -> Result<(), std::io::Error> {
+        self.stdout.queue(crossterm::cursor::Hide)?;
+        self.stdout.queue(cursor::SavePosition)?;
         self.stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
         self.stdout.queue(cursor::MoveTo(0,0))?;
+
+        Terminal::draw_left_margin(self, &String::from("~"))?;
+
+        self.stdout.queue(cursor::RestorePosition)?;
+        self.stdout.queue(crossterm::cursor::Show)?;
+        self.stdout.flush()?;
+
+        Ok(())
+    }
+
+    pub fn print_at_pos(&mut self, x: u16, y: u16, text: &str) -> Result<(), std::io::Error> {
+        self.stdout.queue(crossterm::cursor::Hide)?;
+        self.stdout.queue(cursor::SavePosition)?;
+        //self.stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
+        self.stdout.queue(cursor::MoveTo(x,y))?;
+
+        println!("{text}");
+
+        self.stdout.queue(cursor::RestorePosition)?;
+        self.stdout.queue(crossterm::cursor::Show)?;
         self.stdout.flush()?;
 
         Ok(())

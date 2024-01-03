@@ -8,6 +8,8 @@ use crossterm::{
 
 use crate::Terminal;
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
@@ -24,15 +26,7 @@ impl Editor {
 
         loop {
             if poll(Duration::from_millis(500))? {
-                if let Err(error) = Terminal::initialize_screen(&mut self.terminal) {
-                    disable_raw_mode()?;
-                    panic!("{error}");
-                }
-
-                if let Err(error) = Terminal::initialize_screen(&mut self.terminal){
-                    disable_raw_mode()?;
-                    panic!("{error}");
-                }
+                self.display_version();
 
                 if let Err(error) = self.process_keypress() {
                     disable_raw_mode()?;
@@ -49,8 +43,6 @@ impl Editor {
         Ok(())
     }
 
-
-    
     pub fn process_keypress(&mut self) -> Result<(), Box<dyn Error>> {
         match read() {
             Ok(Event::Key(event)) => {
@@ -70,6 +62,14 @@ impl Editor {
             Err(_) => Err("Error in read!".into()),
             _ => Ok(()),
         }
+    }
+
+    pub fn display_version(&mut self) {
+        let x = 3;
+        let y = self.terminal.size().height / 3;
+
+        let _ = Terminal::print_at_pos(&mut self.terminal, x, y, &VERSION);
+
     }
     
     pub fn default() -> Self {

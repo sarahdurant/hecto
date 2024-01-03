@@ -22,8 +22,6 @@ impl Editor {
             panic!("{error}");
         }
 
-        Terminal::draw_left_margin(&mut self.terminal, &String::from("~"))?;
-
         loop {
             if poll(Duration::from_millis(500))? {
                 if let Err(error) = Terminal::initialize_screen(&mut self.terminal) {
@@ -31,7 +29,10 @@ impl Editor {
                     panic!("{error}");
                 }
 
-                Terminal::draw_left_margin(&mut self.terminal, &String::from("~"))?;
+                if let Err(error) = Terminal::initialize_screen(&mut self.terminal){
+                    disable_raw_mode()?;
+                    panic!("{error}");
+                }
 
                 if let Err(error) = self.process_keypress() {
                     disable_raw_mode()?;
@@ -55,9 +56,12 @@ impl Editor {
             Ok(Event::Key(event)) => {
                 let key = event.code;
                 let modifiers = event.modifiers;
+                let key_text = format!("{key:?}\r");
+                let mod_text = format!("{modifiers:?}\r");
                 
-                println!("{key:?}\r");         
-                println!("{modifiers:?}\r");         
+                Terminal::print_at_pos(&mut self.terminal, 10, 10, &key_text)?;
+                Terminal::print_at_pos(&mut self.terminal, 10, 11, &mod_text)?;
+                
                 if key == KeyCode::Char('q') && modifiers == KeyModifiers::CONTROL {
                     self.should_quit = true;
                 }

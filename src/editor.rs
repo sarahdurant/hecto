@@ -23,10 +23,11 @@ impl Editor {
             disable_raw_mode()?;
             panic!("{error}");
         }
-
+        self.display_version();
+        
         loop {
             if poll(Duration::from_millis(500))? {
-                self.display_version();
+                
 
                 if let Err(error) = self.process_keypress() {
                     disable_raw_mode()?;
@@ -67,8 +68,9 @@ impl Editor {
     pub fn display_version(&mut self) {
         let x = 3;
         let y = self.terminal.size().height / 3;
+        let welcome_message = format!("Hecto editor -- version {}", VERSION);
 
-        let _ = Terminal::print_at_pos(&mut self.terminal, x, y, &VERSION);
+        let _ = Terminal::print_at_pos(&mut self.terminal, x, y, &welcome_message);
 
     }
     

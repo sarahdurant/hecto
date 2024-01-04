@@ -63,12 +63,14 @@ impl Terminal {
     }
 
     pub fn print_at_pos(&mut self, x: u16, y: u16, text: &str) -> Result<(), std::io::Error> {
+        let width = self.size.width;
+        let text_len = std::cmp::min(text.len(), width.into());
+
         self.stdout.queue(crossterm::cursor::Hide)?;
         self.stdout.queue(cursor::SavePosition)?;
-        //self.stdout.queue(crossterm::terminal::Clear(ClearType::All))?;
         self.stdout.queue(cursor::MoveTo(x,y))?;
 
-        println!("{text}");
+        println!("{}", &text[..text_len]);
 
         self.stdout.queue(cursor::RestorePosition)?;
         self.stdout.queue(crossterm::cursor::Show)?;

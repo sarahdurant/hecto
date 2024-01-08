@@ -58,13 +58,12 @@ impl Editor {
             Ok(Event::Key(event)) => {
                 let key = event.code;
                 let modifiers = event.modifiers;
-                let key_text = String::from(Self::get_char_from_keycode(key));
-                let _mod_text = format!("{modifiers:?}\r");
                 
+                let _mod_text = format!("{modifiers:?}\r");
    
                 match modifiers {
                     KeyModifiers::CONTROL if key == KeyCode::Char('q') => self.should_quit = true,
-                    _ => self.print_at_cursor(&key_text).expect("print failed"),
+                    _ => self.handle_unmodified_keycode(key),
                 }
 
                 Ok(())
@@ -74,49 +73,63 @@ impl Editor {
         }
     }
 
-    pub fn get_char_from_keycode(key: KeyCode) -> char {
+    fn handle_unmodified_keycode(&mut self, key: KeyCode) {
+        match Self::get_char_from_keycode(key) {
+            Some(character) => {
+                let key_text = String::from(character);
+                let _ = self.print_at_cursor(&key_text);
+            },
+            None => {
+                let wild_card = String::from('?');
+                let _ = self.print_at_cursor(&wild_card);
+            }
+        }
+    }
+
+    //todo: convert to Into<char> for KeyCode?
+    pub fn get_char_from_keycode(key: KeyCode) -> Option<char> {
         match key {
-            KeyCode::Char('a') => 'a',
-            KeyCode::Char('b') => 'b',
-            KeyCode::Char('c') => 'c',
-            KeyCode::Char('d') => 'd',
-            KeyCode::Char('e') => 'e',
-            KeyCode::Char('f') => 'f',
-            KeyCode::Char('g') => 'g',
-            KeyCode::Char('h') => 'h',
-            KeyCode::Char('i') => 'i',
-            KeyCode::Char('j') => 'j',
-            KeyCode::Char('k') => 'k',
-            KeyCode::Char('l') => 'l',
-            KeyCode::Char('m') => 'm',
-            KeyCode::Char('n') => 'n',
-            KeyCode::Char('o') => 'o',
-            KeyCode::Char('p') => 'p',
-            KeyCode::Char('q') => 'q',
-            KeyCode::Char('r') => 'r',
-            KeyCode::Char('s') => 's',
-            KeyCode::Char('t') => 't',
-            KeyCode::Char('u') => 'u',
-            KeyCode::Char('v') => 'v',
-            KeyCode::Char('w') => 'w',
-            KeyCode::Char('x') => 'x',
-            KeyCode::Char('y') => 'y',
-            KeyCode::Char('z') => 'z',
-            KeyCode::Char('1') => '1',
-            KeyCode::Char('2') => '2',
-            KeyCode::Char('3') => '3',
-            KeyCode::Char('4') => '4',
-            KeyCode::Char('5') => '5',
-            KeyCode::Char('6') => '6',
-            KeyCode::Char('7') => '7',
-            KeyCode::Char('8') => '8',
-            KeyCode::Char('9') => '9',
-            KeyCode::Char('0') => '0',
-            KeyCode::Char('~') => '0',
-            KeyCode::Char('`') => '`',
-            KeyCode::Char('-') => '-',
-            KeyCode::Char('=') => '=',
-            _  => '?'
+            KeyCode::Char('a') => Some('a'),
+            KeyCode::Char('b') => Some('b'),
+            KeyCode::Char('c') => Some('c'),
+            KeyCode::Char('d') => Some('d'),
+            KeyCode::Char('e') => Some('e'),
+            KeyCode::Char('f') => Some('f'),
+            KeyCode::Char('g') => Some('g'),
+            KeyCode::Char('h') => Some('h'),
+            KeyCode::Char('i') => Some('i'),
+            KeyCode::Char('j') => Some('j'),
+            KeyCode::Char('k') => Some('k'),
+            KeyCode::Char('l') => Some('l'),
+            KeyCode::Char('m') => Some('m'),
+            KeyCode::Char('n') => Some('n'),
+            KeyCode::Char('o') => Some('o'),
+            KeyCode::Char('p') => Some('p'),
+            KeyCode::Char('q') => Some('q'),
+            KeyCode::Char('r') => Some('r'),
+            KeyCode::Char('s') => Some('s'),
+            KeyCode::Char('t') => Some('t'),
+            KeyCode::Char('u') => Some('u'),
+            KeyCode::Char('v') => Some('v'),
+            KeyCode::Char('w') => Some('w'),
+            KeyCode::Char('x') => Some('x'),
+            KeyCode::Char('y') => Some('y'),
+            KeyCode::Char('z') => Some('z'),
+            KeyCode::Char('1') => Some('1'),
+            KeyCode::Char('2') => Some('2'),
+            KeyCode::Char('3') => Some('3'),
+            KeyCode::Char('4') => Some('4'),
+            KeyCode::Char('5') => Some('5'),
+            KeyCode::Char('6') => Some('6'),
+            KeyCode::Char('7') => Some('7'),
+            KeyCode::Char('8') => Some('8'),
+            KeyCode::Char('9') => Some('9'),
+            KeyCode::Char('0') => Some('0'),
+            KeyCode::Char('~') => Some('~'),
+            KeyCode::Char('`') => Some('`'),
+            KeyCode::Char('-') => Some('-'),
+            KeyCode::Char('=') => Some('='),
+            _  => None,
         }
     }
 

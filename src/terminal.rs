@@ -2,10 +2,10 @@ use std::{
     io::{stdout, Write},
 };
 use crossterm::{
-    QueueableCommand, cursor,
+    QueueableCommand, ExecutableCommand, cursor,
     terminal::{ClearType},
+    
 };
-
 
 pub struct Size {
     pub width: u16,
@@ -75,6 +75,29 @@ impl Terminal {
         self.stdout.queue(cursor::RestorePosition)?;
         self.stdout.queue(crossterm::cursor::Show)?;
         self.stdout.flush()?;
+
+        Ok(())
+    }
+
+    pub fn print_char_at_pos(&mut self, x: u16, y: u16, text: &str) -> Result<(), std::io::Error> {
+        let width = self.size.width;
+        let text_len = std::cmp::min(text.len(), width.into());
+
+        self.stdout.queue(crossterm::cursor::Hide)?;
+        self.stdout.queue(cursor::SavePosition)?;
+        self.stdout.queue(cursor::MoveTo(x,y))?;
+
+        println!("{}", &text[..text_len]);
+
+        self.stdout.queue(cursor::RestorePosition)?;
+        self.stdout.queue(crossterm::cursor::Show)?;
+        self.stdout.flush()?;
+
+        Ok(())
+    }
+
+    pub fn move_cursor_to(&mut self, x: u16, y: u16) -> Result<(), std::io::Error> {
+        self.stdout.execute(cursor::MoveTo(x,y))?;
 
         Ok(())
     }

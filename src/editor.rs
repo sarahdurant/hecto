@@ -80,8 +80,18 @@ impl Editor {
                 let _ = self.print_at_cursor(&key_text);
             },
             None => {
-                let wild_card = String::from('?');
-                let _ = self.print_at_cursor(&wild_card);
+
+
+                match key {
+                    KeyCode::Left => self.move_cursor_rel(-1, 0),
+                    KeyCode::Right => self.move_cursor_rel(1, 0),
+                    KeyCode::Up => self.move_cursor_rel(0, -1),
+                    KeyCode::Down => self.move_cursor_rel(0, 1),
+                    _ => {
+                        let wild_card = String::from('?');
+                        let _ = self.print_at_cursor(&wild_card);
+                    }
+                }
             }
         }
     }
@@ -139,7 +149,21 @@ impl Editor {
         let welcome_message = format!("Hecto editor -- version {}", VERSION);
 
         let _ = Terminal::print_at_pos(&mut self.terminal, x, y, &welcome_message);
+    }
 
+    fn move_cursor_rel(&mut self, x: i16, y: i16) {
+        let x_max = self.terminal.size().width;
+        let mut tmp : i16 = self.cursor.x as i16 + x;
+        // If you try to move left at left-most, right at right-most,
+        // or up at up-most, do nothing. We always let the cursor scroll down
+        if tmp <= x_max.try_into().unwrap() && tmp >= 0 {
+            self.cursor.x = tmp as u16;
+        }
+
+        tmp = self.cursor.y as i16 + y;
+        if tmp >=0 {
+            self.cursor.y = tmp as u16;
+        }  
     }
 
     fn print_at_cursor(&mut self, text: &str) -> Result<(), std::io::Error> {

@@ -3,6 +3,7 @@ mod terminal;
 
 use editor::Editor;
 pub use terminal::Terminal;
+pub use editor::Cursor;
 
 
 // fn to_ctrl_byte(c: char) -> u8 {

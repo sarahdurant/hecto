@@ -87,6 +87,11 @@ impl Editor {
                     KeyCode::Right => self.move_cursor_rel(1, 0),
                     KeyCode::Up => self.move_cursor_rel(0, -1),
                     KeyCode::Down => self.move_cursor_rel(0, 1),
+                    KeyCode::Backspace => {
+                        self.move_cursor_rel(-1, 0);
+                        self.delete_at_cursor();
+                    },
+                    KeyCode::Delete => self.delete_at_cursor(),
                     _ => {
                         let wild_card = String::from('?');
                         let _ = self.print_at_cursor(&wild_card);
@@ -184,6 +189,10 @@ impl Editor {
         }
 
         Ok(())
+    }
+
+    pub fn delete_at_cursor(&mut self) {
+        let _ = Terminal::delete_at_pos(&mut self.terminal, self.cursor.x, self.cursor.y);
     }
     
     pub fn default() -> Self {

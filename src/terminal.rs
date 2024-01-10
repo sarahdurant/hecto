@@ -101,4 +101,9 @@ impl Terminal {
 
         Ok(())
     }
+
+    pub fn delete_at_pos(&mut self, x: u16, y: u16) {
+        let text = " ";
+        self.print_char_at_pos(x, y, &text);
+    }
 }

@@ -102,8 +102,22 @@ impl Terminal {
         Ok(())
     }
 
-    pub fn delete_at_pos(&mut self, x: u16, y: u16) {
+    pub fn delete_at_pos(&mut self, x: u16, y: u16) -> Result<(), std::io::Error> {
         let text = " ";
-        self.print_char_at_pos(x, y, &text);
+        self.print_char_at_pos(x, y, &text)?;
+
+        Ok(())
+    }
+
+    pub fn clear_screen(&mut self) -> Result<(), std::io::Error> {
+        self.stdout.execute(crossterm::terminal::Clear(ClearType::All))?;
+
+        Ok(())
+    }
+
+    pub fn clear_current_line(&mut self) -> Result<(), std::io::Error> {
+        self.stdout.execute(crossterm::terminal::Clear(ClearType::CurrentLine))?;
+
+        Ok(())
     }
 }

@@ -1,5 +1,6 @@
 use std::time::Duration;
 use std::error::Error;
+use std::env;
 
 use crossterm::{
     event::{poll, read, Event, KeyModifiers, KeyCode},
@@ -7,6 +8,9 @@ use crossterm::{
 };
 
 use crate::Terminal;
+use crate::Document;
+use crate::Row;
+
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -19,9 +23,27 @@ pub struct Editor {
     should_quit: bool,
     terminal: Terminal,
     cursor: Cursor,
+    document: Document,
 }
 
 impl Editor {
+    pub fn default() -> Self {
+        let args: Vec<String> = env::args().collect();
+        let document = if args.len() > 1 {
+            let file_name = &args[1];
+            Document::open(file_name.clone()).unwrap_or_default()
+        } else {
+            Document::default()
+        };
+
+        Editor {
+            should_quit: false,
+            terminal: Terminal::default().expect("Failed to initialize Terminal."),
+            cursor: Cursor {x: 0, y: 0},
+            document,
+        }
+    }
+
     pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         enable_raw_mode()?;
         
@@ -32,25 +54,67 @@ impl Editor {
         self.display_version();
 
         loop {
-            if let Err(error) = Terminal::move_cursor_to(&mut self.terminal, self.cursor.x, self.cursor.y) {
+            //display the editor's document row by row
+            if let Err(error) = self.refresh_screen() {
                 disable_raw_mode()?;
                 panic!("{error}");
             }
 
+            if self.should_quit {
+                //println!("Exiting... Goodbye!");
+                break;
+            }
+
+            //detect keyboard input and update document/cursor as needed
             if poll(Duration::from_millis(500))? {
                 if let Err(error) = self.process_keypress() {
                     disable_raw_mode()?;
                     panic!("{error}");
                 }
-                
-                if self.should_quit {
-                    println!("Exiting... Goodbye!");
-                    break;
-                }
             }
         }
         disable_raw_mode()?;
         Ok(())
+    }
+
+    fn refresh_screen(&mut self) -> Result<(), std::io::Error> {
+        
+        Terminal::move_cursor_to(&mut self.terminal, 0, 0)?;
+
+        if self.should_quit {
+            let _  = Terminal::clear_screen(&mut self.terminal);
+            println!("Goodbye.\r");
+        } else {
+            self.draw_rows();
+        }
+
+        // move the cursor to whereever the editor says it's supposed to be
+        Terminal::move_cursor_to(&mut self.terminal, self.cursor.x, self.cursor.y)?;
+
+        Ok(())
+    }
+
+    fn draw_row(&self, row: &Row) {
+        let start = 0;
+        let end = self.terminal.size().width as usize;
+        let row = row.render(start, end);
+        println!("{}\r", row)
+    }
+
+    fn draw_rows(&mut self) {
+        let height = self.terminal.size().height;
+        
+        for terminal_row in 0..height-1 {
+            let _ = Terminal::clear_current_line(&mut self.terminal);
+
+            if let Some(row) = self.document.row(terminal_row.into()) {
+                self.draw_row(row);
+            } else if terminal_row == height / 3 {
+                self.display_version();
+            } else {
+                println!("~\r");
+            }
+        }
     }
 
     pub fn process_keypress(&mut self) -> Result<(), Box<dyn Error>> {
@@ -194,13 +258,4 @@ impl Editor {
     pub fn delete_at_cursor(&mut self) {
         let _ = Terminal::delete_at_pos(&mut self.terminal, self.cursor.x, self.cursor.y);
     }
-    
-    pub fn default() -> Self {
-        Editor {
-            should_quit: false,
-            terminal: Terminal::default().expect("Failed to initialize Terminal."),
-            cursor: Cursor {x: 0, y: 0},
-        }
-    }
-    
 }

@@ -1,0 +1,42 @@
+
+use std::fs;
+use crate::Row;
+
+#[derive(Default)]
+pub struct Document {
+    filename: String,
+    rows: Vec<Row>,
+}
+
+
+impl Document {
+    // pub fn default() -> Self {
+    //     let filename = "";
+    //     let mut rows = Vec::new();
+    //     Self {
+    //         filename,
+    //         rows: &rows,
+    //     }
+    // }
+
+    pub fn open(filename: String ) -> Result<Self, std::io::Error> {
+        let contents = fs::read_to_string(filename.clone())?;
+        let mut rows = Vec::new();
+        for value in contents.lines() {
+            rows.push(Row::from(value));
+        }
+        Ok(Self {
+            filename,
+            rows,
+        })
+    }
+
+    pub fn row(&self, index: usize) -> Option<&Row> {
+        self.rows.get(index)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.rows.is_empty()
+    }
+
+}
